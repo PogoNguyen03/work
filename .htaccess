@@ -1,0 +1,16 @@
+RewriteEngine On
+
+# Handle routing for work folder
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^work/public/(.*)$ work/public/index.php [QSA,L]
+
+# Handle direct access to work/public
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^work/(.*)$ work/public/index.php [QSA,L]
+
+# Handle root access to work
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ work/public/index.php [QSA,L] 

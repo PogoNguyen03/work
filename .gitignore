@@ -1,0 +1,29 @@
+# API Keys (Bảo mật)
+app/config/api_keys.php
+
+# Logs
+*.log
+logs/
+
+# Cache
+cache/
+tmp/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Composer
+vendor/
+composer.lock
+
+# Environment
+.env
+.env.local
+.env.production 
