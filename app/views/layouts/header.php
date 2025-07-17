@@ -56,9 +56,6 @@ require_once __DIR__ . '/../../helpers/i18n.php';
 </head>
 <body>
     <!-- Language Selector -->
-    <div class="language-selector">
-        <?php include __DIR__ . '/../components/language_selector.php'; ?>
-    </div>
     
     <!-- <div class="container-fluid">
         <div class="row">

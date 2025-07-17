@@ -82,7 +82,7 @@ ob_start();
                 <table class="table table-hover">
                     <thead class="table-light">
                         <tr>
-                            <th><?= __('reports') ?></th>
+                            <th class="w-50"><?= __('reports') ?></th>
                             <th><?= __('reporter') ?></th>
                             <th><?= __('role') ?></th>
                             <?php if ($role === 'admin'): ?>

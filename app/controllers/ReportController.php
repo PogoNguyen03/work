@@ -215,6 +215,60 @@ function handleCreate() {
     include '../app/views/reports/form.php';
 }
 
+// Thêm hàm updateUpdatereport
+function updateUpdatereport($reportId, $title, $titleZh, $content, $contentZh, $userId, $departmentId) {
+    global $conn;
+    // Kiểm tra đã có bản ghi chưa
+    $stmt = $conn->prepare('SELECT id, title, title_zh, content, content_zh FROM updatereports WHERE report_id = ?');
+    $stmt->bind_param('i', $reportId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $old = $result->fetch_assoc();
+    $stmt->close();
+
+    $needTranslate = false;
+    if (!$old) {
+        $needTranslate = true;
+    } else {
+        if ($old['title'] !== $title || $old['content'] !== $content) $needTranslate = true;
+        if ($old['title_zh'] !== $titleZh || $old['content_zh'] !== $contentZh) $needTranslate = true;
+    }
+
+    if ($needTranslate) {
+        // Nếu thiếu 1 trường, dịch sang ngôn ngữ còn lại
+        if (empty($titleZh) && !empty($title)) $titleZh = translateText($title, 'zh');
+        if (empty($title) && !empty($titleZh)) $title = translateText($titleZh, 'vi');
+        if (empty($contentZh) && !empty($content)) $contentZh = translateText($content, 'zh');
+        if (empty($content) && !empty($contentZh)) $content = translateText($contentZh, 'vi');
+
+        // Cập nhật vào updatereports
+        if ($old) {
+            $stmt = $conn->prepare('UPDATE updatereports SET title=?, title_zh=?, content=?, content_zh=?, user_id=?, department_id=?, updated_at=NOW() WHERE report_id=?');
+            $stmt->bind_param('ssssiii', $title, $titleZh, $content, $contentZh, $userId, $departmentId, $reportId);
+        } else {
+            $stmt = $conn->prepare('INSERT INTO updatereports (report_id, title, title_zh, content, content_zh, user_id, department_id) VALUES (?, ?, ?, ?, ?, ?, ?)');
+            $stmt->bind_param('issssii', $reportId, $title, $titleZh, $content, $contentZh, $userId, $departmentId);
+        }
+        $stmt->execute();
+        $stmt->close();
+    }
+    return [$title, $titleZh, $content, $contentZh];
+}
+
+// Thêm hàm detectLang PHP
+function detectLang($text) {
+    // Nếu có ký tự tiếng Trung
+    if (preg_match('/[\x{4e00}-\x{9fff}]/u', $text)) {
+        return 'zh';
+    }
+    // Nếu có nhiều dấu tiếng Việt
+    if (preg_match('/[ăâđêôơưáàảãạấầẩẫậắằẳẵặéèẻẽẹếềểễệíìỉĩịóòỏõọốồổỗộớờởỡợúùủũụứừửữựýỳỷỹỵ]/iu', $text)) {
+        return 'vi';
+    }
+    // Mặc định là vi
+    return 'vi';
+}
+
 function handleStore() {
     global $conn, $user_id, $department_id;
     
@@ -224,24 +278,56 @@ function handleStore() {
         $titleZh = isset($_POST['title_zh']) ? trim($_POST['title_zh']) : '';
         $contentZh = isset($_POST['content_zh']) ? trim($_POST['content_zh']) : '';
         
-        if (empty($title) || empty($content)) {
+        if (empty($title) && empty($titleZh)) {
             $_SESSION['error'] = __('please_fill_all_fields');
             header('Location: /work/public/reports/create');
             exit;
         }
         
-        // Nếu chưa có bản dịch thì mới dịch
-        if (empty($titleZh)) {
-            $titleZh = translateText($title, 'zh');
+        // Tự động detect chiều dịch cho title
+        if (empty($titleZh) && !empty($title)) {
+            $lang = detectLang($title);
+            if ($lang === 'zh') {
+                $titleZh = $title;
+                $title = translateText($titleZh, 'vi');
+            } else {
+                $titleZh = translateText($title, 'zh');
+            }
+        } else if (empty($title) && !empty($titleZh)) {
+            $lang = detectLang($titleZh);
+            if ($lang === 'vi') {
+                $title = $titleZh;
+                $titleZh = translateText($title, 'zh');
+            } else {
+                $title = translateText($titleZh, 'vi');
+            }
         }
-        if (empty($contentZh)) {
-            $contentZh = translateText($content, 'zh');
+        // Tự động detect chiều dịch cho content
+        if (empty($contentZh) && !empty($content)) {
+            $lang = detectLang($content);
+            if ($lang === 'zh') {
+                $contentZh = $content;
+                $content = translateText($contentZh, 'vi');
+            } else {
+                $contentZh = translateText($content, 'zh');
+            }
+        } else if (empty($content) && !empty($contentZh)) {
+            $lang = detectLang($contentZh);
+            if ($lang === 'vi') {
+                $content = $contentZh;
+                $contentZh = translateText($content, 'zh');
+            } else {
+                $content = translateText($contentZh, 'vi');
+            }
         }
         
         $stmt = $conn->prepare('INSERT INTO reports (user_id, title, title_zh, content, content_zh, department_id) VALUES (?, ?, ?, ?, ?, ?)');
         $stmt->bind_param('issssi', $user_id, $title, $titleZh, $content, $contentZh, $department_id);
         
         if ($stmt->execute()) {
+            $reportId = $stmt->insert_id;
+            // Lưu vào updatereports
+            updateUpdatereport($reportId, $title, $titleZh, $content, $contentZh, $user_id, $department_id);
             $_SESSION['success'] = __('report_created_success');
             header('Location: /work/public/reports');
         } else {
@@ -339,7 +425,7 @@ function handleUpdate() {
         $titleZh = isset($_POST['title_zh']) ? trim($_POST['title_zh']) : '';
         $contentZh = isset($_POST['content_zh']) ? trim($_POST['content_zh']) : '';
         
-        if (!$report_id || empty($title) || empty($content)) {
+        if (!$report_id || (empty($title) && empty($titleZh))) {
             $_SESSION['error'] = __('please_fill_all_fields');
             header('Location: /work/public/reports/edit?id=' . $report_id);
             exit;
@@ -363,13 +449,44 @@ function handleUpdate() {
             exit;
         }
         
-        // Sử dụng bản dịch từ form, nếu trống thì dịch tự động
-        if (empty($titleZh)) {
-            $titleZh = translateText($title, 'zh');
+        // Tự động detect chiều dịch cho title
+        if (empty($titleZh) && !empty($title)) {
+            $lang = detectLang($title);
+            if ($lang === 'zh') {
+                $titleZh = $title;
+                $title = translateText($titleZh, 'vi');
+            } else {
+                $titleZh = translateText($title, 'zh');
+            }
+        } else if (empty($title) && !empty($titleZh)) {
+            $lang = detectLang($titleZh);
+            if ($lang === 'vi') {
+                $title = $titleZh;
+                $titleZh = translateText($title, 'zh');
+            } else {
+                $title = translateText($titleZh, 'vi');
+            }
         }
-        if (empty($contentZh)) {
-            $contentZh = translateText($content, 'zh');
+        // Tự động detect chiều dịch cho content
+        if (empty($contentZh) && !empty($content)) {
+            $lang = detectLang($content);
+            if ($lang === 'zh') {
+                $contentZh = $content;
+                $content = translateText($contentZh, 'vi');
+            } else {
+                $contentZh = translateText($content, 'zh');
+            }
+        } else if (empty($content) && !empty($contentZh)) {
+            $lang = detectLang($contentZh);
+            if ($lang === 'vi') {
+                $content = $contentZh;
+                $contentZh = translateText($content, 'zh');
+            } else {
+                $content = translateText($contentZh, 'vi');
+            }
         }
+        // So sánh và cập nhật updatereports
+        list($title, $titleZh, $content, $contentZh) = updateUpdatereport($report_id, $title, $titleZh, $content, $contentZh, $user_id, $department_id);
         
         // Update report
         $stmt = $conn->prepare('UPDATE reports SET title = ?, title_zh = ?, content = ?, content_zh = ?, updated_at = NOW() WHERE id = ?');

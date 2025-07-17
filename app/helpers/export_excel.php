@@ -9,14 +9,16 @@ use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 function exportReportsToExcel($reports, $role, $user_id, $department_id) {
     global $conn;
+    require_once __DIR__ . '/i18n.php';
+    $currentLang = getCurrentLang();
     // Lấy thông tin user
-    $stmt = $conn->prepare("SELECT role, name, department_id FROM users WHERE id = ?");
+    $stmt = $conn->prepare("SELECT role, name, name_zh, department_id FROM users WHERE id = ?");
     $stmt->bind_param("i", $user_id);
     $stmt->execute();
     $user = $stmt->get_result()->fetch_assoc();
     $stmt->close();
     if (!$user) die("Không tìm thấy thông tin người dùng!");
-    $name = $user['name'];
+    $name = ($currentLang === 'zh' && !empty($user['name_zh'])) ? $user['name_zh'] : $user['name'];
     // Lấy tên ban
     $department_name = '';
     if ($department_id) {
@@ -27,29 +29,29 @@ function exportReportsToExcel($reports, $role, $user_id, $department_id) {
         $stmt->close();
         $department_name = $department ? $department['name'] : '';
     }
-    $spreadsheet = new Spreadsheet();
-    $sheet = $spreadsheet->getActiveSheet();
-    // Thiết lập tiêu đề bảng tuỳ vai trò
+    // Tiêu đề file
     switch ($role) {
         case 'user':
-            $headers = ['Tiêu đề', 'Nội dung', 'Ngày giờ báo cáo', 'Trạng thái'];
-            $title = "BÁO CÁO CÔNG VIỆC - $name - $department_name";
+            $headers = [__('title'), __('content'), __('created_at'), __('status')];
+            $title = __('reports') . ' - ' . $name . ' - ' . $department_name;
             break;
         case 'nhomtruong':
-            $headers = ['Tên người gửi', 'Vai trò', 'Tiêu đề', 'Nội dung', 'Ngày tạo', 'Trạng thái'];
-            $title = "BÁO CÁO CÔNG VIỆC - $name - Nhóm trưởng - $department_name";
+            $headers = [__('reporter'), __('role'), __('title'), __('content'), __('created_at'), __('status')];
+            $title = __('reports') . ' - ' . $name . ' - ' . __('team_leader') . ' - ' . $department_name;
             break;
         case 'quanly':
-            $headers = ['Tên người gửi', 'Vai trò', 'Tiêu đề', 'Nội dung', 'Ngày tạo', 'Trạng thái'];
-            $title = "BÁO CÁO CÔNG VIỆC - $name - Quản lý - $department_name";
+            $headers = [__('reporter'), __('role'), __('title'), __('content'), __('created_at'), __('status')];
+            $title = __('reports') . ' - ' . $name . ' - ' . __('manager') . ' - ' . $department_name;
             break;
         case 'admin':
-            $headers = ['Tên người gửi', 'Chức vụ', 'Ban', 'Tiêu đề', 'Nội dung', 'Ngày tạo', 'Trạng thái'];
-            $title = "BÁO CÁO CÔNG VIỆC - $name - Admin - Tất cả ban";
+            $headers = [__('reporter'), __('role'), __('department'), __('title'), __('content'), __('created_at'), __('status')];
+            $title = __('reports') . ' - ' . $name . ' - Admin - ' . __('all');
             break;
         default:
             die("Không rõ vai trò người dùng.");
     }
+    $spreadsheet = new Spreadsheet();
+    $sheet = $spreadsheet->getActiveSheet();
     // Thiết lập tiêu đề
     $sheet->setCellValue('A1', $title);
     $sheet->mergeCells('A1:' . chr(64 + count($headers)) . '1');
@@ -73,33 +75,48 @@ function exportReportsToExcel($reports, $role, $user_id, $department_id) {
     foreach ($reports as $data) {
         $col = 1;
         // Xác định trạng thái cập nhật
-        $status = 'Mới tạo';
-        if ($data['updated_at'] && $data['updated_at'] != $data['created_at']) {
-            if (shouldShowUpdatedBadge($data['id'], $data['updated_at'], $data['created_at'])) {
-                $status = date('d/m/Y H:i', strtotime($data['updated_at'])) . ' đã cập nhật';
-            } else {
-                $status = 'Đã xem';
+        if ($currentLang === 'zh') {
+            $status = __('new');
+            if ($data['updated_at'] && $data['updated_at'] != $data['created_at']) {
+                if (shouldShowUpdatedBadge($data['id'], $data['updated_at'], $data['created_at'])) {
+                    $status = date('d/m/Y H:i', strtotime($data['updated_at'])) . ' ' . __('updated');
+                } else {
+                    $status = __('viewed');
+                }
+            }
+        } else {
+            $status = __('new');
+            if ($data['updated_at'] && $data['updated_at'] != $data['created_at']) {
+                if (shouldShowUpdatedBadge($data['id'], $data['updated_at'], $data['created_at'])) {
+                    $status = date('d/m/Y H:i', strtotime($data['updated_at'])) . ' ' . __('updated');
+                } else {
+                    $status = __('viewed');
+                }
             }
         }
-        
+        $titleVal = ($currentLang === 'zh' && !empty($data['title_zh'])) ? $data['title_zh'] : $data['title'];
+        $contentVal = ($currentLang === 'zh' && !empty($data['content_zh'])) ? $data['content_zh'] : $data['content'];
+        $nameVal = ($currentLang === 'zh' && !empty($data['name_zh'])) ? $data['name_zh'] : $data['name'];
+        $roleVal = ($currentLang === 'zh') ? __(roleToVietnamese($data['user_role'])) : roleToVietnamese($data['user_role']);
+        $departmentVal = $data['department_name'] ?? '';
         if ($role === 'user') {
-            $sheet->setCellValue(chr(64 + $col++).$row, $data['title']);
-            $sheet->setCellValue(chr(64 + $col++).$row, $data['content']);
+            $sheet->setCellValue(chr(64 + $col++).$row, $titleVal);
+            $sheet->setCellValue(chr(64 + $col++).$row, $contentVal);
             $sheet->setCellValue(chr(64 + $col++).$row, $data['created_at']);
             $sheet->setCellValue(chr(64 + $col++).$row, $status);
         } else if ($role === 'nhomtruong' || $role === 'quanly') {
-            $sheet->setCellValue(chr(64 + $col++).$row, $data['name']);
-            $sheet->setCellValue(chr(64 + $col++).$row, roleToVietnamese($data['user_role']));
-            $sheet->setCellValue(chr(64 + $col++).$row, $data['title']);
-            $sheet->setCellValue(chr(64 + $col++).$row, $data['content']);
+            $sheet->setCellValue(chr(64 + $col++).$row, $nameVal);
+            $sheet->setCellValue(chr(64 + $col++).$row, $roleVal);
+            $sheet->setCellValue(chr(64 + $col++).$row, $titleVal);
+            $sheet->setCellValue(chr(64 + $col++).$row, $contentVal);
             $sheet->setCellValue(chr(64 + $col++).$row, $data['created_at']);
             $sheet->setCellValue(chr(64 + $col++).$row, $status);
         } else if ($role === 'admin') {
-            $sheet->setCellValue(chr(64 + $col++).$row, $data['name']);
-            $sheet->setCellValue(chr(64 + $col++).$row, roleToVietnamese($data['user_role']));
-            $sheet->setCellValue(chr(64 + $col++).$row, $data['department_name']);
-            $sheet->setCellValue(chr(64 + $col++).$row, $data['title']);
-            $sheet->setCellValue(chr(64 + $col++).$row, $data['content']);
+            $sheet->setCellValue(chr(64 + $col++).$row, $nameVal);
+            $sheet->setCellValue(chr(64 + $col++).$row, $roleVal);
+            $sheet->setCellValue(chr(64 + $col++).$row, $departmentVal);
+            $sheet->setCellValue(chr(64 + $col++).$row, $titleVal);
+            $sheet->setCellValue(chr(64 + $col++).$row, $contentVal);
             $sheet->setCellValue(chr(64 + $col++).$row, $data['created_at']);
             $sheet->setCellValue(chr(64 + $col++).$row, $status);
         }
@@ -125,10 +142,10 @@ function exportReportsToExcel($reports, $role, $user_id, $department_id) {
 
 function roleToVietnamese($role) {
     switch ($role) {
-        case 'admin': return 'Admin';
-        case 'quanly': return 'Quản lý';
-        case 'nhomtruong': return 'Nhóm trưởng';
-        case 'user': return 'Nhân viên';
-        default: return 'Người dùng';
+        case 'admin': return 'admin';
+        case 'quanly': return 'manager';
+        case 'nhomtruong': return 'team_leader';
+        case 'user': return 'employee';
+        default: return 'user';
     }
 } 

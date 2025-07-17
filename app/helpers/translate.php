@@ -66,20 +66,26 @@ function translate_to_chinese($text) {
  */
 function translateWithGemini($text, $targetLang = 'zh') {
     global $apiKeys;
-    
-    // Lấy danh sách API key Gemini
+
     $apiKeysList = $apiKeys['gemini_api_keys'] ?? [];
     if (empty($text) || empty($apiKeysList) || !is_array($apiKeysList)) {
         return '';
     }
-    
-    // Xác định ngôn ngữ đích
-    $targetLanguage = ($targetLang === 'zh') ? 'tiếng Trung' : 'tiếng Việt';
+
+    // Prompt mạnh hơn
+    if ($targetLang === 'zh') {
+        $prompt = "Dịch văn bản sau từ tiếng Việt (vi) sang tiếng Trung (zh). Chỉ trả về bản dịch tiếng Trung, không giải thích, không giữ lại tiếng Việt: $text";
+    } else {
+        $prompt = "Dịch văn bản sau từ tiếng Trung (zh) sang tiếng Việt (vi). Chỉ trả về bản dịch tiếng Việt, không giải thích, không giữ lại tiếng Trung: $text";
+    }
+
+    error_log('[Gemini] Prompt: ' . $prompt);
+
     $postData = [
         'contents' => [
             [
                 'parts' => [
-                    ['text' => "Dịch văn bản sau sang $targetLanguage, chỉ trả về bản dịch không có giải thích thêm: $text"]
+                    ['text' => $prompt]
                 ]
             ]
         ],
@@ -99,23 +105,30 @@ function translateWithGemini($text, $targetLang = 'zh') {
         curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($postData));
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        
+
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
+        error_log('[Gemini] HTTP ' . $httpCode . ' - Response: ' . $response);
+
         if ($httpCode === 200) {
             $data = json_decode($response, true);
             if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
-                return trim($data['candidates'][0]['content']['parts'][0]['text']);
+                $result = trim($data['candidates'][0]['content']['parts'][0]['text']);
+                error_log('[Gemini] Result: ' . $result);
+                // Nếu dịch sang tiếng Việt mà kết quả vẫn là tiếng Trung, thử lại với prompt khác hoặc fallback
+                if ($targetLang === 'vi' && preg_match('/[\x{4e00}-\x{9fff}]/u', $result)) {
+                    error_log('[Gemini] Result still Chinese, will try next key or fallback.');
+                    continue;
+                }
+                return $result;
             }
         } else {
             error_log("Gemini API Error (key $apiKey): HTTP $httpCode - $response");
-            // Nếu lỗi quota hoặc key bị block thì thử key tiếp theo
             continue;
         }
     }
-    // Nếu tất cả key đều lỗi
     error_log("Gemini API Error: All keys failed");
     return '';
 }
@@ -150,6 +163,7 @@ function translateWithOpenAI($text, $targetLang = 'zh') {
         'temperature' => 0.3
     ];
 
+    error_log('[OpenAI] Input: ' . $text . ' | Target: ' . $targetLanguage);
     $ch = curl_init('https://api.openai.com/v1/chat/completions');
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Content-Type: application/json',
@@ -163,6 +177,8 @@ function translateWithOpenAI($text, $targetLang = 'zh') {
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
+    error_log('[OpenAI] HTTP ' . $httpCode . ' - Response: ' . $response);
+
     if ($httpCode !== 200) {
         error_log("OpenAI API Error: HTTP $httpCode - $response");
         return '';
@@ -171,7 +187,9 @@ function translateWithOpenAI($text, $targetLang = 'zh') {
     $result = json_decode($response, true);
     
     if (isset($result['choices'][0]['message']['content'])) {
-        return trim($result['choices'][0]['message']['content']);
+        $translation = trim($result['choices'][0]['message']['content']);
+        error_log('[OpenAI] Result: ' . $translation);
+        return $translation;
     }
     
     return '';

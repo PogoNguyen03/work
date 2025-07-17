@@ -8,6 +8,7 @@ $sidebarTitles = [
     'users' => __('users'),
     'tasks' => __('tasks'),
     'notifications' => __('notifications'),
+    'website' => __('website_management'),
     'profile' => __('profile'),
 ];
 $sidebarTitle = $sidebarTitles[$currentPage] ?? __('dashboard');
@@ -47,6 +48,13 @@ $sidebarTitle = $sidebarTitles[$currentPage] ?? __('dashboard');
             <li class="nav-item">
                 <a class="nav-link text-white <?= $currentPage === 'notifications' ? 'active' : '' ?>" href="/work/public/notifications">
                     <i class="fas fa-bell me-2"></i> <?= __('notifications') ?>
+                </a>
+            </li>
+            <?php endif; ?>
+            <?php if ($role === 'admin' || $role === 'quanly'): ?>
+            <li class="nav-item">
+                <a class="nav-link text-white <?= $currentPage === 'website' ? 'active' : '' ?>" href="/work/public/website">
+                    <i class="fas fa-globe me-2"></i> <?= __('website_management') ?>
                 </a>
             </li>
             <?php endif; ?>

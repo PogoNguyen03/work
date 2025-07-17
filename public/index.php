@@ -24,23 +24,30 @@ $path_parts = explode('/', $path);
 $main_path = $path_parts[0] ?? 'dashboard';
 $sub_path = $path_parts[1] ?? '';
 
+// Check if this is a public website route (not logged in)
+$public_routes = ['', 'about', 'contact'];
+$is_public_route = in_array($main_path, $public_routes);
+
 // Default to dashboard if no path
 if (empty($main_path) || $main_path === 'work' || $main_path === 'public') {
-    // Nếu chưa đăng nhập thì chuyển về trang login
+    // If not logged in, show public homepage
     if (!isset($_SESSION['user_id'])) {
-        header('Location: /work/public/login');
-        exit;
+        $main_path = '';
+        $is_public_route = true;
+    } else {
+        $main_path = 'dashboard';
     }
-    $main_path = 'dashboard';
 }
 
-// Route mapping
-$routes = [
+// Route mapping for admin panel
+$admin_routes = [
     'dashboard' => '../app/controllers/DashboardController.php',
     'reports' => '../app/controllers/ReportController.php',
     'users' => '../app/controllers/UserController.php',
     'tasks' => '../app/controllers/TaskController.php',
     'notifications' => '../app/controllers/NotificationController.php',
+    'website' => '../app/controllers/WebsiteController.php',
+    'email' => '../app/controllers/EmailController.php',
     'login' => '../app/controllers/AuthController.php',
     'logout' => '../app/controllers/AuthController.php',
     'profile' => '../app/controllers/ProfileController.php',
@@ -48,9 +55,15 @@ $routes = [
     'language' => '../app/controllers/LanguageController.php'
 ];
 
-// Check if route exists
-if (isset($routes[$main_path])) {
-    $controller_file = $routes[$main_path];
+// Handle public website routes
+if ($is_public_route) {
+    require_once '../app/controllers/PublicWebsiteController.php';
+    exit;
+}
+
+// Handle admin routes
+if (isset($admin_routes[$main_path])) {
+    $controller_file = $admin_routes[$main_path];
     if (file_exists($controller_file)) {
         // Pass sub-path as action parameter
         if (!empty($sub_path)) {
