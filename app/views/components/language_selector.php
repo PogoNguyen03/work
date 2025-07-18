@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../../helpers/i18n.php';
+$base_path = realpath(__DIR__ . '/../../..');
+require_once $base_path . '/app/helpers/i18n.php';
 // Language selector component
 $currentLang = getCurrentLang();
 $availableLanguages = getAvailableLanguages();
@@ -11,7 +12,7 @@ $availableLanguages = getAvailableLanguages();
     <ul class="dropdown-menu" aria-labelledby="languageDropdown">
         <?php foreach ($availableLanguages as $code => $name): ?>
         <li>
-            <a class="dropdown-item <?= $currentLang === $code ? 'active' : '' ?>" href="/work/public/language?lang=<?= $code ?>">
+            <a class="dropdown-item <?= $currentLang === $code ? 'active' : '' ?>" href="/language?lang=<?= $code ?>">
                 <?= $name ?>
             </a>
         </li>

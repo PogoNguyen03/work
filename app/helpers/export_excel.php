@@ -1,5 +1,15 @@
 <?php
-require_once __DIR__ . '/../../../Baocaocongviec/vendor/autoload.php';
+// Sử dụng đường dẫn tuyệt đối để tránh lỗi open_basedir
+$base_path = realpath(__DIR__ . '/../..');
+$autoload_app = $base_path . '/app/vendor/autoload.php';
+$autoload_root = $base_path . '/vendor/autoload.php';
+if (file_exists($autoload_app)) {
+    require_once $autoload_app;
+} elseif (file_exists($autoload_root)) {
+    require_once $autoload_root;
+} else {
+    die('Không tìm thấy file autoload.php. Hãy chạy composer install!');
+}
 // Export Excel helper 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -8,8 +18,8 @@ use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 function exportReportsToExcel($reports, $role, $user_id, $department_id) {
-    global $conn;
-    require_once __DIR__ . '/i18n.php';
+    global $conn, $base_path;
+    require_once $base_path . '/app/helpers/i18n.php';
     $currentLang = getCurrentLang();
     // Lấy thông tin user
     $stmt = $conn->prepare("SELECT role, name, name_zh, department_id FROM users WHERE id = ?");

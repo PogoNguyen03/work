@@ -1,6 +1,8 @@
 <?php
-require_once __DIR__ . '/../../helpers/auth.php';
-require_once __DIR__ . '/../../helpers/i18n.php';
+// Sử dụng đường dẫn tuyệt đối để tránh lỗi open_basedir
+$base_path = dirname(dirname(dirname(__DIR__)));
+require_once $base_path . '/app/helpers/auth.php';
+require_once $base_path . '/app/helpers/i18n.php';
 $role = getUserRole();
 $sidebarTitles = [
     'dashboard' => __('dashboard'),
@@ -21,39 +23,39 @@ $sidebarTitle = $sidebarTitles[$currentPage] ?? __('dashboard');
         </div>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link text-white <?= $currentPage === 'dashboard' ? 'active' : '' ?>" href="/work/public/dashboard">
+                <a class="nav-link text-white <?= $currentPage === 'dashboard' ? 'active' : '' ?>" href="/dashboard">
                     <i class="fas fa-home me-2"></i> <?= __('dashboard') ?>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-white <?= $currentPage === 'reports' ? 'active' : '' ?>" href="/work/public/reports">
+                <a class="nav-link text-white <?= $currentPage === 'reports' ? 'active' : '' ?>" href="/reports">
                     <i class="fas fa-file-alt me-2"></i> <?= __('reports') ?>
                 </a>
             </li>
             <?php if ($role === 'admin'|| $role === 'quanly' || $role === 'nhomtruong'): ?>
             <li class="nav-item">
-                <a class="nav-link text-white <?= $currentPage === 'users' ? 'active' : '' ?>" href="/work/public/users">
+                <a class="nav-link text-white <?= $currentPage === 'users' ? 'active' : '' ?>" href="/users">
                     <i class="fas fa-users me-2"></i> <?= __('users') ?>
                 </a>
             </li>
             <?php endif; ?>
             <?php if ($role === 'admin' || $role === 'quanly' || $role === 'nhomtruong'): ?>
             <li class="nav-item">
-                <a class="nav-link text-white <?= $currentPage === 'tasks' ? 'active' : '' ?>" href="/work/public/tasks">
+                <a class="nav-link text-white <?= $currentPage === 'tasks' ? 'active' : '' ?>" href="/tasks">
                     <i class="fas fa-tasks me-2"></i> <?= __('tasks') ?>
                 </a>
             </li>
             <?php endif; ?>
             <?php if ($role === 'admin' || $role === 'quanly' || $role === 'nhomtruong'): ?>
             <li class="nav-item">
-                <a class="nav-link text-white <?= $currentPage === 'notifications' ? 'active' : '' ?>" href="/work/public/notifications">
+                <a class="nav-link text-white <?= $currentPage === 'notifications' ? 'active' : '' ?>" href="/notifications">
                     <i class="fas fa-bell me-2"></i> <?= __('notifications') ?>
                 </a>
             </li>
             <?php endif; ?>
             <?php if ($role === 'admin' || $role === 'quanly'): ?>
             <li class="nav-item">
-                <a class="nav-link text-white <?= $currentPage === 'website' ? 'active' : '' ?>" href="/work/public/website">
+                <a class="nav-link text-white <?= $currentPage === 'website' ? 'active' : '' ?>" href="/website">
                     <i class="fas fa-globe me-2"></i> <?= __('website_management') ?>
                 </a>
             </li>
@@ -62,12 +64,12 @@ $sidebarTitle = $sidebarTitles[$currentPage] ?? __('dashboard');
         <hr class="text-white-50 mx-3">
         <ul class="nav flex-column mb-3">
             <li class="nav-item">
-                <a class="nav-link text-white" href="/work/public/profile">
+                <a class="nav-link text-white" href="/profile">
                     <i class="fas fa-user me-2"></i> <?= __('profile') ?>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link text-white" href="/work/public/logout">
+                <a class="nav-link text-white" href="/logout">
                     <i class="fas fa-sign-out-alt me-2"></i> <?= __('logout') ?>
                 </a>
             </li>

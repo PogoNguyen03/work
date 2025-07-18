@@ -8,7 +8,7 @@ ob_start();
         <h2><i class="fas fa-file-alt me-2"></i><?= __('report_list') ?></h2>
     </div>
     <div class="col-md-4 text-end">
-        <a href="/work/public/reports/create" class="btn btn-primary">
+        <a href="/reports/create" class="btn btn-primary">
             <i class="fas fa-plus me-1"></i><?= __('create_report') ?>
         </a>
         <a href="<?= exportExcelUrl() ?>" class="btn btn-success ms-2">
@@ -20,7 +20,7 @@ ob_start();
 <!-- Filter Card -->
 <div class="card mb-4">
     <div class="card-body">
-        <form method="GET" action="/work/public/reports" class="row g-3">
+        <form method="GET" action="/reports" class="row g-3">
             <?php if (isset($users) && ($role === 'admin' || $role === 'quanly' || $role === 'nhomtruong')): ?>
             <div class="col-md-4">
                 <label for="user_id" class="form-label"><?= __('reporter') ?></label>
@@ -57,7 +57,7 @@ ob_start();
                 <button type="submit" class="btn btn-outline-primary me-2">
                     <i class="fas fa-search me-1"></i><?= __('filter') ?>
                 </button>
-                <a href="/work/public/reports" class="btn btn-outline-secondary">
+                <a href="/reports" class="btn btn-outline-secondary">
                     <i class="fas fa-times me-1"></i><?= __('clear_filter') ?>
                 </a>
             </div>
@@ -73,7 +73,7 @@ ob_start();
                 <i class="fas fa-file-alt fa-3x text-muted mb-3"></i>
                 <h5 class="text-muted"><?= __('no_reports') ?></h5>
                 <p class="text-muted"><?= __('create_first_report') ?></p>
-                <a href="/work/public/reports/create" class="btn btn-primary">
+                <a href="/reports/create" class="btn btn-primary">
                     <i class="fas fa-plus me-1"></i><?= __('create_report') ?>
                 </a>
             </div>
@@ -140,14 +140,14 @@ ob_start();
                             </td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <a href="/work/public/reports/view?id=<?= $report['id'] ?>" 
+                                    <a href="/reports/view?id=<?= $report['id'] ?>" 
                                        class="btn btn-sm btn-outline-primary" 
                                        title="<?= __('view') ?>">
                                         <i class="fas fa-eye"></i>
                                     </a>
                                     
                                     <?php if (canEditReportByRole($report['user_id'], $report['user_role'], $report['department_id'] ?? null)): ?>
-                                    <a href="/work/public/reports/edit?id=<?= $report['id'] ?>" 
+                                    <a href="/reports/edit?id=<?= $report['id'] ?>" 
                                        class="btn btn-sm btn-outline-warning" 
                                        title="<?= __('edit') ?>">
                                         <i class="fas fa-edit"></i>
@@ -155,7 +155,7 @@ ob_start();
                                     <?php endif; ?>
                                     
                                     <?php if (canDeleteReportByRole($report['user_id'], $report['user_role'], $report['department_id'] ?? null)): ?>
-                                    <a href="/work/public/reports?delete=<?= $report['id'] ?>" 
+                                    <a href="/reports?delete=<?= $report['id'] ?>" 
                                        class="btn btn-sm btn-outline-danger" 
                                        title="<?= __('delete') ?>"
                                        onclick="return confirm('<?= __('confirm_delete') ?>')">
@@ -205,11 +205,11 @@ ob_start();
 </div>
 <?php
 $content = ob_get_clean();
-include __DIR__ . '/../layouts/main.php';
+include $base_path . '/app/views/layouts/main.php';
 
 function exportExcelUrl() {
     $params = $_GET;
     $params['action'] = 'export';
-    return '/work/public/reports?' . http_build_query($params);
+    return '/reports?' . http_build_query($params);
 }
 ?> 

@@ -1,7 +1,11 @@
 <?php
 session_start();
-require_once '../app/helpers/db.php';
-require_once '../app/helpers/auth.php';
+
+// Sử dụng đường dẫn tuyệt đối để tránh lỗi open_basedir
+$base_path = realpath(__DIR__ . '/..');
+require_once $base_path . '/app/helpers/db.php';
+require_once $base_path . '/app/helpers/auth.php';
+require_once $base_path . '/app/helpers/ip.php';
 
 if (isset($_GET['debug_session'])) {
     echo '<pre>';
@@ -10,54 +14,69 @@ if (isset($_GET['debug_session'])) {
     exit;
 }
 
+// Chặn truy cập ngoài mạng nội bộ cho các route không phải public
+$user_ip = get_client_ip();
+$public_routes = [
+    '/', '/index.php', '/homepage', '/about', '/contact', '/assets', '/uploads', '/favicon.ico', '/robots.txt', '/sitemap.xml'
+];
+$request_uri = $_SERVER['REQUEST_URI'] ?? '/';
+$uri_path = parse_url($request_uri, PHP_URL_PATH);
+$allow = false;
+foreach ($public_routes as $pub) {
+    if (strpos($uri_path, $pub) === 0) {
+        $allow = true;
+        break;
+    }
+}
+if (!is_internal_ip($user_ip) && !$allow) {
+    // Redirect về trang chủ hoặc trả về 403
+    header('Location: /');
+    exit;
+}
+
 // Simple routing
 $request_uri = $_SERVER['REQUEST_URI'];
 $path = parse_url($request_uri, PHP_URL_PATH);
 $path = trim($path, '/');
 
-// Remove 'work/public' from path if present
-$path = str_replace('work/public', '', $path);
+// Remove 'public' from path if present
+$path = str_replace('public', '', $path);
 $path = trim($path, '/');
 
 // Handle sub-paths like reports/create, reports/edit?id=1
 $path_parts = explode('/', $path);
-$main_path = $path_parts[0] ?? 'dashboard';
+$main_path = $path_parts[0] ?? '';
 $sub_path = $path_parts[1] ?? '';
 
 // Check if this is a public website route (not logged in)
 $public_routes = ['', 'about', 'contact'];
 $is_public_route = in_array($main_path, $public_routes);
 
-// Default to dashboard if no path
-if (empty($main_path) || $main_path === 'work' || $main_path === 'public') {
-    // If not logged in, show public homepage
-    if (!isset($_SESSION['user_id'])) {
-        $main_path = '';
-        $is_public_route = true;
-    } else {
-        $main_path = 'dashboard';
-    }
+// Default to public homepage if no path
+if (empty($main_path)) {
+    $main_path = '';
+    $is_public_route = true;
 }
 
 // Route mapping for admin panel
 $admin_routes = [
-    'dashboard' => '../app/controllers/DashboardController.php',
-    'reports' => '../app/controllers/ReportController.php',
-    'users' => '../app/controllers/UserController.php',
-    'tasks' => '../app/controllers/TaskController.php',
-    'notifications' => '../app/controllers/NotificationController.php',
-    'website' => '../app/controllers/WebsiteController.php',
-    'email' => '../app/controllers/EmailController.php',
-    'login' => '../app/controllers/AuthController.php',
-    'logout' => '../app/controllers/AuthController.php',
-    'profile' => '../app/controllers/ProfileController.php',
-    'register' => '../app/controllers/RegisterController.php',
-    'language' => '../app/controllers/LanguageController.php'
+    'dashboard' => $base_path . '/app/controllers/DashboardController.php',
+    'reports' => $base_path . '/app/controllers/ReportController.php',
+    'users' => $base_path . '/app/controllers/UserController.php',
+    'tasks' => $base_path . '/app/controllers/TaskController.php',
+    'notifications' => $base_path . '/app/controllers/NotificationController.php',
+    'website' => $base_path . '/app/controllers/WebsiteController.php',
+    'email' => $base_path . '/app/controllers/EmailController.php',
+    'login' => $base_path . '/app/controllers/AuthController.php',
+    'logout' => $base_path . '/app/controllers/AuthController.php',
+    'profile' => $base_path . '/app/controllers/ProfileController.php',
+    'register' => $base_path . '/app/controllers/RegisterController.php',
+    'language' => $base_path . '/app/controllers/LanguageController.php'
 ];
 
 // Handle public website routes
 if ($is_public_route) {
-    require_once '../app/controllers/PublicWebsiteController.php';
+    require_once $base_path . '/app/controllers/PublicWebsiteController.php';
     exit;
 }
 

@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../../helpers/i18n.php';
+$base_path = realpath(__DIR__ . '/../../..');
+require_once $base_path . '/app/helpers/i18n.php';
 // View: Quản lý công việc
 ob_start();
 ?>
@@ -58,4 +59,4 @@ ob_start();
 </div>
 <?php
 $content = ob_get_clean();
-include __DIR__ . '/../layouts/main.php'; 
+include $base_path . '/app/views/layouts/main.php'; 

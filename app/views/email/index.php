@@ -1,8 +1,11 @@
-<?php include '../app/views/layouts/header.php'; ?>
+<?php 
+$base_path = realpath(__DIR__ . '/../../..');
+include $base_path . '/app/views/layouts/header.php'; 
+?>
 <div class="container-fluid">
     <div class="row">
         <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
-            <?php include '../app/views/layouts/sidebar.php'; ?>
+            <?php include $base_path . '/app/views/layouts/sidebar.php'; ?>
         </nav>
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
             <div class="dashboard-header py-3 border-bottom mb-3 bg-white sticky-top">
@@ -41,7 +44,7 @@
                                     <td><?= date('d/m/Y H:i', strtotime($email['created_at'])) ?></td>
                                     <td><?= $email['is_read'] ? '<span class="badge bg-success">Đã đọc</span>' : '<span class="badge bg-secondary">Chưa đọc</span>' ?></td>
                                     <td>
-                                        <a href="/work/public/email?id=<?= $email['id'] ?>" class="btn btn-sm btn-info">Xem</a>
+                                        <a href="/email?id=<?= $email['id'] ?>" class="btn btn-sm btn-info">Xem</a>
                                         <form method="POST" action="" style="display:inline-block">
                                             <input type="hidden" name="id" value="<?= $email['id'] ?>">
                                             <input type="hidden" name="action" value="delete">
@@ -73,11 +76,11 @@
                         <button type="submit" class="btn btn-success">Đánh dấu đã đọc</button>
                         <?php endif; ?>
                     </form>
-                    <a href="/work/public/email" class="btn btn-secondary">Quay lại danh sách</a>
+                    <a href="/email" class="btn btn-secondary">Quay lại danh sách</a>
                 </div>
             </div>
             <?php endif; ?>
         </main>
     </div>
 </div>
-<?php include '../app/views/layouts/footer.php'; ?> 
+<?php include $base_path . '/app/views/layouts/footer.php'; ?> 

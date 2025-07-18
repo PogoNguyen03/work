@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../../helpers/i18n.php';
+$base_path = realpath(__DIR__ . '/../../..');
+require_once $base_path . '/app/helpers/i18n.php';
 $currentPage = 'users';
 // View: Danh sách người dùng
 ob_start();
@@ -10,7 +11,7 @@ ob_start();
     </div>
     <div class="col-md-4 text-end">
         <?php if ($role === 'admin' || $role === 'quanly' || $role === 'nhomtruong'): ?>
-        <a href="/work/public/users/create" class="btn btn-primary">
+        <a href="/users/create" class="btn btn-primary">
             <i class="fas fa-plus me-1"></i><?= __('add_user') ?>
         </a>
         <?php endif; ?>
@@ -29,7 +30,7 @@ ob_start();
                 <i class="fas fa-users fa-3x text-muted mb-3"></i>
                 <h5 class="text-muted"><?= __('no_users') ?></h5>
                 <?php if ($role === 'admin' || $role === 'quanly' || $role === 'nhomtruong'): ?>
-                <a href="/work/public/users/create" class="btn btn-primary">
+                <a href="/users/create" class="btn btn-primary">
                     <i class="fas fa-plus me-1"></i><?= __('add_first_user') ?>
                 </a>
                 <?php endif; ?>
@@ -83,15 +84,21 @@ ob_start();
                                 <?php else: ?>
                                     <span class="badge bg-warning text-dark"><?= __('not_verified') ?></span>
                                     <?php if ($role === 'admin' || $role === 'quanly' || $role === 'nhomtruong'): ?>
-                                    <a href="/work/public/users/verify?id=<?= $user['id'] ?>" class="btn btn-sm btn-success ms-2"><?= __('verify') ?></a>
+                                    <a href="/users/verify?id=<?= $user['id'] ?>" class="btn btn-sm btn-success ms-2"><?= __('verify') ?></a>
                                     <?php endif; ?>
                                 <?php endif; ?>
                             </td>
                             <td>
                                 <div class="btn-group" role="group">
-                                    <a href="/work/public/users/edit?id=<?= $user['id'] ?>" class="btn btn-sm btn-outline-warning" title="<?= __('edit') ?>">
+                                    <a href="/users/edit?id=<?= $user['id'] ?>" class="btn btn-sm btn-outline-warning" title="<?= __('edit') ?>">
                                         <i class="fas fa-edit"></i>
                                     </a>
+                                    <?php if (($role === 'admin' || $role === 'quanly' || $role === 'nhomtruong') && $user['id'] != $_SESSION['user_id']): ?>
+                                    <a href="/users/delete?id=<?= $user['id'] ?>" class="btn btn-sm btn-outline-danger" title="<?= __('delete') ?>"
+                                       onclick="return confirm('<?= __('confirm_delete') ?>')">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>
@@ -104,4 +111,4 @@ ob_start();
 </div>
 <?php
 $content = ob_get_clean();
-include __DIR__ . '/../layouts/main.php'; 
+include $base_path . '/app/views/layouts/main.php'; 

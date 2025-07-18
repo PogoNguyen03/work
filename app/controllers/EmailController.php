@@ -1,12 +1,15 @@
 <?php
-require_once '../app/helpers/db.php';
-require_once '../app/helpers/auth.php';
-require_once '../app/helpers/i18n.php';
+$base_path = realpath(__DIR__ . '/../..');
+require_once $base_path . '/app/middleware/IpRestrictionMiddleware.php';
+IpRestrictionMiddleware::handle();
+require_once $base_path . '/app/helpers/db.php';
+require_once $base_path . '/app/helpers/auth.php';
+require_once $base_path . '/app/helpers/i18n.php';
 
 requireLogin();
 $role = getUserRole();
 if ($role !== 'admin' && $role !== 'quanly') {
-    header('Location: /work/public/dashboard');
+    header('Location: /dashboard');
     exit();
 }
 $pageTitle = 'Quản lý email liên hệ';
@@ -32,7 +35,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['success_message'] = 'Đã đánh dấu đã đọc!';
         }
     }
-    header('Location: /work/public/email');
+    header('Location: /email');
     exit();
 }
 // Lấy danh sách email
@@ -52,4 +55,4 @@ if (isset($_GET['id'])) {
     $email_detail = $res->fetch_assoc();
     $stmt->close();
 }
-include '../app/views/email/index.php'; 
+include $base_path . '/app/views/email/index.php'; 

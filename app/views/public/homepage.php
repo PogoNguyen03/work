@@ -8,10 +8,10 @@
                 <h1 class="display-4 fw-bold mb-4"><?= $homepage_content['title'] ?? 'Thiên Cơ Trí Liên SEO' ?></h1>
                 <p class="lead mb-4"><?= $homepage_content['description'] ?? 'Công ty SEO hàng đầu Việt Nam - Tối ưu hóa website, tăng thứ hạng Google' ?></p>
                 <div class="d-flex gap-3">
-                    <a href="/work/public/contact" class="btn btn-primary btn-lg">
+                    <a href="/contact" class="btn btn-primary btn-lg">
                         <i class="fas fa-rocket me-2"></i><?= __('homepage_free_consultation') ?>
                     </a>
-                    <a href="/work/public/about" class="btn btn-outline-light btn-lg">
+                    <a href="/about" class="btn btn-outline-light btn-lg">
                         <i class="fas fa-info-circle me-2"></i><?= __('homepage_learn_more') ?>
                     </a>
                 </div>
@@ -155,7 +155,7 @@
     <div class="container text-center">
         <h2 class="display-5 fw-bold mb-4"><?= __('homepage_ready_ranking') ?></h2>
         <p class="lead mb-4"><?= __('homepage_help_goals') ?></p>
-        <a href="/work/public/contact" class="btn btn-light btn-lg">
+        <a href="/contact" class="btn btn-light btn-lg">
             <i class="fas fa-phone me-2"></i><?= __('homepage_contact_now') ?>
         </a>
     </div>

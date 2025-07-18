@@ -7,7 +7,7 @@ function isLoggedIn() {
 
 function requireLogin() {
     if (!isLoggedIn()) {
-        header('Location: /work/public/login');
+        header('Location: /login');
         exit;
     }
 }

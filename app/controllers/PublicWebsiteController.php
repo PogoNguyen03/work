@@ -1,6 +1,8 @@
 <?php
-require_once '../app/helpers/db.php';
-require_once '../app/helpers/i18n.php';
+// Sử dụng đường dẫn tuyệt đối để tránh lỗi open_basedir
+$base_path = dirname(dirname(__DIR__));
+require_once $base_path . '/app/helpers/db.php';
+require_once $base_path . '/app/helpers/i18n.php';
 
 // Get current language from session or default to Vietnamese
 $current_lang = $_SESSION['lang'] ?? 'vi';
@@ -10,15 +12,15 @@ $request_uri = $_SERVER['REQUEST_URI'];
 $path = parse_url($request_uri, PHP_URL_PATH);
 $path = trim($path, '/');
 
-// Remove 'work/public' from path if present
-$path = str_replace('work/public', '', $path);
+// Remove 'public' from path if present
+$path = str_replace('public', '', $path);
 $path = trim($path, '/');
 
-// Determine which page to show
+// Determine which page to show based on exact path match
 $page = 'homepage'; // default
-if (strpos($path, 'about') !== false) {
+if ($path === 'about') {
     $page = 'about';
-} elseif (strpos($path, 'contact') !== false) {
+} elseif ($path === 'contact') {
     $page = 'contact';
 }
 
@@ -63,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $page === 'contact') {
 }
 
 // Include the appropriate view
-include "../app/views/public/{$page}.php";
+include $base_path . "/app/views/public/{$page}.php";
 
 // Helper function to get content by language
 function getWebsiteContentByLanguage($page, $lang = 'vi') {

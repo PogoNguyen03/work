@@ -1,4 +1,9 @@
-<?php require_once __DIR__ . '/../../helpers/i18n.php'; ?>
+<?php 
+// Sử dụng đường dẫn tuyệt đối để tránh lỗi open_basedir
+$base_path = realpath(__DIR__ . '/../../..');
+require_once $base_path . '/app/helpers/i18n.php'; 
+require_once $base_path . '/app/helpers/ip.php';
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -216,9 +221,9 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="/work/public/">
+            <a class="navbar-brand" href="/">
                 <?php if (!empty($website_settings['logo'])): ?>
-                    <img src="/work/public/<?= $website_settings['logo'] ?>" alt="Logo">
+                    <img src="/public/<?= $website_settings['logo'] ?>" alt="Logo">
                 <?php endif; ?>
                 <span class="ms-2 fw-bold" style="font-size:1.25rem;vertical-align:middle;">
                     <?= htmlspecialchars($website_settings['site_name'] ?? 'Thiên Cơ Trí Liên') ?>
@@ -236,30 +241,35 @@
                             <i class="fas fa-globe"></i> <?= getCurrentLang() === 'vi' ? 'VN' : '中文' ?>
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="langDropdown">
-                            <li><a class="dropdown-item" href="/work/public/language?lang=vi">Tiếng Việt</a></li>
-                            <li><a class="dropdown-item" href="/work/public/language?lang=zh">中文</a></li>
+                            <li><a class="dropdown-item" href="/language?lang=vi">Tiếng Việt</a></li>
+                            <li><a class="dropdown-item" href="/language?lang=zh">中文</a></li>
                         </ul>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?= $page === 'homepage' ? 'active' : '' ?>" href="/work/public/">
+                        <a class="nav-link <?= $page === 'homepage' ? 'active' : '' ?>" href="/">
                             <i class="fas fa-home me-1"></i><?= __('homepage') ?>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?= $page === 'about' ? 'active' : '' ?>" href="/work/public/about">
+                        <a class="nav-link <?= $page === 'about' ? 'active' : '' ?>" href="/about">
                             <i class="fas fa-info-circle me-1"></i><?= __('about') ?>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link <?= $page === 'contact' ? 'active' : '' ?>" href="/work/public/contact">
+                        <a class="nav-link <?= $page === 'contact' ? 'active' : '' ?>" href="/contact">
                             <i class="fas fa-envelope me-1"></i><?= __('contact') ?>
                         </a>
                     </li>
+                    <?php
+                    // Chỉ hiển thị nút đăng nhập nếu IP thuộc mạng nội bộ 192.168.5.0/24
+                    ?>
+                    <?php if (is_internal_ip($user_ip)): ?>
                     <li class="nav-item">
-                        <a class="nav-link btn btn-outline-light btn-sm ms-2" href="/work/public/login">
+                        <a class="nav-link btn btn-outline-light btn-sm ms-2" href="/login">
                             <i class="fas fa-sign-in-alt me-1"></i><?= __('login') ?>
                         </a>
                     </li>
+                    <?php endif; ?>
                 </ul>
             </div>
         </div>

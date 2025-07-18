@@ -1,7 +1,11 @@
 <?php
-require_once '../app/helpers/db.php';
-require_once '../app/helpers/auth.php';
-require_once '../app/helpers/translate.php';
+// Sử dụng đường dẫn tuyệt đối để tránh lỗi open_basedir
+$base_path = realpath(__DIR__ . '/../..');
+require_once $base_path . '/app/middleware/IpRestrictionMiddleware.php';
+IpRestrictionMiddleware::handle();
+require_once $base_path . '/app/helpers/db.php';
+require_once $base_path . '/app/helpers/auth.php';
+require_once $base_path . '/app/helpers/translate.php';
 
 // Require login
 requireLogin();
@@ -42,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->close();
     }
     
-    header('Location: /work/public/profile');
+    header('Location: /profile');
     exit;
 }
 
@@ -60,4 +64,4 @@ $user = $result->fetch_assoc();
 $stmt->close();
 
 // Xóa các include header/footer/layout cũ, chỉ render view
-include '../app/views/profile/index.php'; 
+include $base_path . '/app/views/profile/index.php'; 

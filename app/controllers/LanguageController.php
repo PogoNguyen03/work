@@ -1,7 +1,11 @@
 <?php
-require_once '../app/helpers/i18n.php';
-require_once '../app/helpers/db.php';
-require_once '../app/helpers/translate.php';
+$base_path = realpath(__DIR__ . '/../..');
+require_once $base_path . '/app/middleware/IpRestrictionMiddleware.php';
+IpRestrictionMiddleware::handle();
+// Sử dụng đường dẫn tuyệt đối để tránh lỗi open_basedir
+require_once $base_path . '/app/helpers/i18n.php';
+require_once $base_path . '/app/helpers/db.php';
+require_once $base_path . '/app/helpers/translate.php';
 
 // Handle language switching
 if (isset($_GET['lang'])) {
@@ -23,12 +27,12 @@ if (isset($_GET['lang'])) {
     }
     
     // Redirect back to the previous page
-    $redirectUrl = $_SERVER['HTTP_REFERER'] ?? '/work/public/dashboard';
+    $redirectUrl = $_SERVER['HTTP_REFERER'] ?? '/dashboard';
     header("Location: $redirectUrl");
     exit;
 }
 
 // If accessed directly, redirect to dashboard
-header('Location: /work/public/dashboard');
+header('Location: /dashboard');
 exit;
 ?> 

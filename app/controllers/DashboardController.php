@@ -1,7 +1,12 @@
 <?php
-require_once '../app/helpers/db.php';
-require_once '../app/helpers/auth.php';
-require_once '../app/helpers/i18n.php';
+$base_path = realpath(__DIR__ . '/../..');
+require_once $base_path . '/app/middleware/IpRestrictionMiddleware.php';
+IpRestrictionMiddleware::handle();
+// Sử dụng đường dẫn tuyệt đối để tránh lỗi open_basedir
+$base_path = dirname(dirname(__DIR__));
+require_once $base_path . '/app/helpers/db.php';
+require_once $base_path . '/app/helpers/auth.php';
+require_once $base_path . '/app/helpers/i18n.php';
 
 // Require login
 requireLogin();
@@ -148,4 +153,4 @@ if ($role === 'admin') {
 }
 
 // Include dashboard view (sẽ tự động include layout mới)
-include '../app/views/dashboard/index.php'; 
+include $base_path . '/app/views/dashboard/index.php'; 

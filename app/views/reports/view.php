@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../../helpers/i18n.php';
+$base_path = realpath(__DIR__ . '/../../..');
+require_once $base_path . '/app/helpers/i18n.php';
 // View: Chi tiết báo cáo
 ob_start();
 ?>
@@ -12,11 +13,11 @@ ob_start();
                         <i class="fas fa-file-alt me-2"></i><?= __('report_detail') ?>
                     </h4>
                     <!-- <div class="btn-group">
-                        <a href="/work/public/reports" class="btn btn-outline-secondary btn-sm">
+                        <a href="/reports" class="btn btn-outline-secondary btn-sm">
                             <i class="fas fa-arrow-left me-1"></i>Quay lại
                         </a>
                         <?php if (canDeleteReport($report['user_id'], $report['department_id'])): ?>
-                        <a href="/work/public/reports/edit?id=<?= $report['id'] ?>" class="btn btn-outline-warning btn-sm">
+                        <a href="/reports/edit?id=<?= $report['id'] ?>" class="btn btn-outline-warning btn-sm">
                             <i class="fas fa-edit me-1"></i>Chỉnh sửa
                         </a>
                         <?php endif; ?>
@@ -84,18 +85,18 @@ ob_start();
                 <!-- Action Buttons -->
                 <div class="border-top pt-4 mt-4">
                     <div class="d-flex justify-content-between">
-                        <a href="/work/public/reports" class="btn btn-secondary">
+                        <a href="/reports" class="btn btn-secondary">
                             <i class="fas fa-arrow-left me-1"></i><?= __('back') ?>
                         </a>
                         <div class="btn-group">
                             <?php if (canEditReportByRole($report['user_id'], $report['user_role'], $report['department_id'])): ?>
-                            <a href="/work/public/reports/edit?id=<?= $report['id'] ?>" class="btn btn-warning">
+                            <a href="/reports/edit?id=<?= $report['id'] ?>" class="btn btn-warning">
                                 <i class="fas fa-edit me-1"></i><?= __('edit') ?>
                             </a>
                             <?php endif; ?>
                             
                             <?php if (canDeleteReportByRole($report['user_id'], $report['user_role'], $report['department_id'])): ?>
-                            <a href="/work/public/reports?delete=<?= $report['id'] ?>" 
+                            <a href="/reports?delete=<?= $report['id'] ?>" 
                                class="btn btn-danger"
                                onclick="return confirm('<?= __('confirm_delete') ?>')">
                                 <i class="fas fa-trash me-1"></i><?= __('delete') ?>
@@ -119,4 +120,4 @@ ob_start();
 </style>
 <?php
 $content = ob_get_clean();
-include __DIR__ . '/../layouts/main.php'; 
+include $base_path . '/app/views/layouts/main.php'; 

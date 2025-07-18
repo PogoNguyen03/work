@@ -1,7 +1,11 @@
 <?php
-require_once '../app/helpers/db.php';
-require_once '../app/helpers/auth.php';
-require_once '../app/helpers/i18n.php';
+require_once __DIR__ . '/../middleware/IpRestrictionMiddleware.php';
+IpRestrictionMiddleware::handle();
+// Sử dụng đường dẫn tuyệt đối để tránh lỗi open_basedir
+$base_path = dirname(dirname(__DIR__));
+require_once $base_path . '/app/helpers/db.php';
+require_once $base_path . '/app/helpers/auth.php';
+require_once $base_path . '/app/helpers/i18n.php';
 
 $action = $_GET['action'] ?? 'login';
 
@@ -22,7 +26,7 @@ function handleLogin() {
     
     // If already logged in, redirect to dashboard
     if (isset($_SESSION['user_id'])) {
-        header('Location: /work/public/dashboard');
+        header('Location: /dashboard');
         exit;
     }
     
@@ -50,7 +54,7 @@ function handleLogin() {
                 $_SESSION['department_id'] = $user['department_id'];
                 $_SESSION['is_verified'] = $user['is_verified'];
                 
-                header('Location: /work/public/dashboard');
+                header('Location: /dashboard');
                 exit;
             } else {
                 $error = __('invalid_credentials');
@@ -144,8 +148,8 @@ function handleLogin() {
                     <i class="fas fa-globe me-1"></i><?= __('language') ?>
                 </button>
                 <ul class="dropdown-menu">
-                    <li><a class="dropdown-item" href="/work/public/language?lang=vi"><?= __('vietnamese') ?></a></li>
-                    <li><a class="dropdown-item" href="/work/public/language?lang=zh"><?= __('chinese') ?></a></li>
+                    <li><a class="dropdown-item" href="/language?lang=vi"><?= __('vietnamese') ?></a></li>
+                    <li><a class="dropdown-item" href="/language?lang=zh"><?= __('chinese') ?></a></li>
                 </ul>
             </div>
         </div>
@@ -162,7 +166,7 @@ function handleLogin() {
                     </div>
                 <?php endif; ?>
                 
-                <form method="POST" action="/work/public/login">
+                <form method="POST" action="/login">
                     <div class="mb-3">
                         <label for="email" class="form-label"><?= __('email') ?></label>
                         <div class="input-group">
@@ -191,7 +195,7 @@ function handleLogin() {
                 
                 <div class="text-center mt-4">
                     <small class="text-muted">
-                        <?= __('no_account') ?> <a href="/work/public/register" class="text-decoration-none"><?= __('register_now') ?></a>
+                        <?= __('no_account') ?> <a href="/register" class="text-decoration-none"><?= __('register_now') ?></a>
                     </small>
                 </div>
             </div>
@@ -204,18 +208,11 @@ function handleLogin() {
 }
 
 function handleLogout() {
-    // Xóa toàn bộ biến session
-    $_SESSION = [];
-    // Xóa cookie session nếu có
-    if (ini_get("session.use_cookies")) {
-        $params = session_get_cookie_params();
-        setcookie(session_name(), '', time() - 42000,
-            $params["path"], $params["domain"],
-            $params["secure"], $params["httponly"]
-        );
-    }
+    // Clear all session data
     session_destroy();
-    header('Location: /work/public/login');
+    
+    // Redirect to login page
+    header('Location: /login');
     exit;
 }
 ?> 

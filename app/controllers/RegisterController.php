@@ -1,6 +1,9 @@
 <?php
-require_once '../app/helpers/db.php';
-require_once '../app/helpers/i18n.php';
+$base_path = realpath(__DIR__ . '/../..');
+require_once $base_path . '/app/middleware/IpRestrictionMiddleware.php';
+IpRestrictionMiddleware::handle();
+require_once $base_path . '/app/helpers/db.php';
+require_once $base_path . '/app/helpers/i18n.php';
 $message = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = trim($_POST['name']);
@@ -26,4 +29,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 // Lấy danh sách ban/phòng
 $departments = $conn->query('SELECT id, name FROM departments ORDER BY name');
-include '../app/views/auth/register.php'; 
+include $base_path . '/app/views/auth/register.php'; 

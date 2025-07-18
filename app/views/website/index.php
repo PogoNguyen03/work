@@ -1,10 +1,13 @@
-<?php include '../app/views/layouts/header.php'; ?>
+<?php 
+$base_path = realpath(__DIR__ . '/../../..');
+include $base_path . '/app/views/layouts/header.php'; 
+?>
 
 <div class="container-fluid">
     <div class="row">
         <!-- Sidebar -->
         <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse">
-            <?php include '../app/views/layouts/sidebar.php'; ?>
+            <?php include $base_path . '/app/views/layouts/sidebar.php'; ?>
         </nav>
 
         <!-- Main content -->
@@ -13,7 +16,7 @@
                 <div class="d-flex justify-content-between align-items-center">
                     <h1 class="h2 mb-0"><?= $pageTitle ?></h1>
                     <div class="d-flex align-items-center gap-2">
-                        <?php include __DIR__ . '/../components/language_selector.php'; ?>
+                        <?php include $base_path . '/app/views/components/language_selector.php'; ?>
                         <span class="badge bg-primary"><?= $_SESSION['user_name'] ?? 'User' ?></span>
                         <span class="badge bg-secondary ms-2"><?= ucfirst($_SESSION['role'] ?? 'user') ?></span>
                     </div>
@@ -325,7 +328,7 @@
                                             <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
                                             <?php if (!empty($website_settings['logo'])): ?>
                                                 <div class="mt-2">
-                                                    <img src="/work/public/<?= $website_settings['logo'] ?>" alt="Logo" style="max-height: 50px;">
+                                                    <img src="/<?= $website_settings['logo'] ?>" alt="Logo" style="max-height: 50px;">
                                                 </div>
                                             <?php endif; ?>
                                         </div>
@@ -335,7 +338,7 @@
                                             <input type="file" class="form-control" id="banner" name="banner" accept="image/*">
                                             <?php if (!empty($website_settings['banner'])): ?>
                                                 <div class="mt-2">
-                                                    <img src="/work/public/<?= $website_settings['banner'] ?>" alt="Banner" style="max-height: 100px;">
+                                                    <img src="/<?= $website_settings['banner'] ?>" alt="Banner" style="max-height: 100px;">
                                                 </div>
                                             <?php endif; ?>
                                         </div>
@@ -447,7 +450,7 @@ document.querySelectorAll('[data-bs-toggle="tab"]').forEach(tab => {
 
 // View email detail
 function viewEmail(id) {
-    fetch(`/work/public/website?email_id=${id}`)
+    fetch(`/website?email_id=${id}`)
         .then(response => response.text())
         .then(html => {
             // Extract email detail from response (you might need to adjust this)
@@ -489,4 +492,4 @@ function translateContent(page) {
 }
 </script>
 
-<?php include '../app/views/layouts/footer.php'; ?> 
+<?php include $base_path . '/app/views/layouts/footer.php'; ?> 

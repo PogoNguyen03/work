@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../../helpers/i18n.php';
+$base_path = realpath(__DIR__ . '/../../..');
+require_once $base_path . '/app/helpers/i18n.php';
 // View: Đăng ký tài khoản
 ?>
 <!DOCTYPE html>
@@ -83,8 +84,8 @@ require_once __DIR__ . '/../../helpers/i18n.php';
                 <i class="fas fa-globe me-1"></i><?= __('language') ?>
             </button>
             <ul class="dropdown-menu">
-                <li><a class="dropdown-item" href="/work/public/language?lang=vi"><?= __('vietnamese') ?></a></li>
-                <li><a class="dropdown-item" href="/work/public/language?lang=zh"><?= __('chinese') ?></a></li>
+                <li><a class="dropdown-item" href="/language?lang=vi"><?= __('vietnamese') ?></a></li>
+                <li><a class="dropdown-item" href="/language?lang=zh"><?= __('chinese') ?></a></li>
             </ul>
         </div>
     </div>
@@ -94,7 +95,7 @@ require_once __DIR__ . '/../../helpers/i18n.php';
         <div class="col-md-7 col-lg-6 col-xl-5">
             <div class="register-card">
                 <div class="register-header">
-                    <!-- <img src="/work/public/assets/pic/logo-vi.png" alt="Logo" style="width:120px;height:auto;border-radius:0;box-shadow:none;background:#fff;padding:8px;"> -->
+                    <!-- <img src="/assets/pic/logo-vi.png" alt="Logo" style="width:120px;height:auto;border-radius:0;box-shadow:none;background:#fff;padding:8px;"> -->
                     <h3 class="fw-bold mb-0"><i class="fa-solid fa-user-plus me-2"></i><?= __('register_account') ?></h3>
                 </div>
                     <?php if (!empty($message)): ?>
@@ -127,7 +128,7 @@ require_once __DIR__ . '/../../helpers/i18n.php';
                             <input type="password" class="form-control" id="confirm" name="confirm" required>
                         </div>
                     <button type="submit" class="btn btn-primary w-100 py-2 mb-2"><i class="fa-solid fa-user-plus me-1"></i><?= __('register') ?></button>
-                    <a href="/work/public/login" class="btn btn-link w-100"><?= __('have_account') ?> <?= __('login') ?></a>
+                    <a href="/login" class="btn btn-link w-100"><?= __('have_account') ?> <?= __('login') ?></a>
                     </form>
             </div>
         </div>

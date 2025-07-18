@@ -1,5 +1,7 @@
 <?php
-require_once __DIR__ . '/../../helpers/i18n.php';
+// Sử dụng đường dẫn tuyệt đối để tránh lỗi open_basedir
+$base_path = dirname(dirname(dirname(__DIR__)));
+require_once $base_path . '/app/helpers/i18n.php';
 ?>
 <!DOCTYPE html>
 <html lang="<?= getCurrentLang() ?>">
@@ -133,7 +135,7 @@ require_once __DIR__ . '/../../helpers/i18n.php';
 <body>
     <div class="layout-container">
         <!-- Sidebar -->
-        <?php include __DIR__ . '/sidebar.php'; ?>
+        <?php include $base_path . '/app/views/layouts/sidebar.php'; ?>
         
         <!-- Main Area -->
         <div class="main-area">
@@ -144,7 +146,7 @@ require_once __DIR__ . '/../../helpers/i18n.php';
                 </div>
                 <div class="topbar-right">
                     <!-- Language Selector -->
-                    <?php include __DIR__ . '/../components/language_selector.php'; ?>
+                    <?php include $base_path . '/app/views/components/language_selector.php'; ?>
                     
                     <!-- User Info -->
                     <div class="user-info">
@@ -171,7 +173,7 @@ require_once __DIR__ . '/../../helpers/i18n.php';
             
             <!-- Content Area -->
             <div class="content-area">
-                <?php include __DIR__ . '/../components/notifications.php'; ?>
+                <?php include $base_path . '/app/views/components/notifications.php'; ?>
                 <?= $content ?? '' ?>
             </div>
         </div>

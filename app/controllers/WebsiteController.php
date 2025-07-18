@@ -1,8 +1,12 @@
 <?php
-require_once '../app/helpers/db.php';
-require_once '../app/helpers/auth.php';
-require_once '../app/helpers/i18n.php';
-require_once '../app/services/TranslationService.php';
+// Sử dụng đường dẫn tuyệt đối để tránh lỗi open_basedir
+$base_path = realpath(__DIR__ . '/../..');
+require_once $base_path . '/app/middleware/IpRestrictionMiddleware.php';
+IpRestrictionMiddleware::handle();
+require_once $base_path . '/app/helpers/db.php';
+require_once $base_path . '/app/helpers/auth.php';
+require_once $base_path . '/app/helpers/i18n.php';
+require_once $base_path . '/app/services/TranslationService.php';
 
 // Require login
 requireLogin();
@@ -10,7 +14,7 @@ requireLogin();
 // Check if user has permission (admin or HR)
 $role = getUserRole();
 if ($role !== 'admin' && $role !== 'quanly') {
-    header('Location: /work/public/dashboard');
+    header('Location: /dashboard');
     exit();
 }
 
@@ -192,7 +196,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     $redirect_tab = $_POST['active_tab'] ?? '';
-    $redirect_url = '/work/public/website' . ($redirect_tab ? ('#' . $redirect_tab) : '');
+    $redirect_url = '/website' . ($redirect_tab ? ('#' . $redirect_tab) : '');
     header('Location: ' . $redirect_url);
     exit();
 }
@@ -230,7 +234,7 @@ if (isset($_GET['email_id'])) {
 }
 
 // Include view
-include '../app/views/website/index.php';
+include $base_path . '/app/views/website/index.php';
 
 // Helper functions
 function clean_input($data) {

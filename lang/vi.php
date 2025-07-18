@@ -275,4 +275,8 @@ return [
     'content_marketing_desc' => 'Tạo nội dung chất lượng thu hút và chuyển đổi khách hàng',
     'local_seo' => 'Local SEO',
     'local_seo_desc' => 'Tối ưu hóa tìm kiếm địa phương cho doanh nghiệp tại địa phương',
+    'show_chinese_field' => 'Hiện trường tiếng Trung',
+    'show_vietnamese_field' => 'Hiện trường tiếng Việt',
+    'auto_translate_warning' => 'Nếu bạn nhập tay, hãy tắt dịch tự động để không bị ghi đè.',
+    'auto_translate_on' => 'Đang bật dịch tự động',
 ]; 

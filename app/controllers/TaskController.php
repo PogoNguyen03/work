@@ -1,7 +1,11 @@
 <?php
-require_once '../app/helpers/db.php';
-require_once '../app/helpers/auth.php';
-require_once '../app/helpers/i18n.php';
+// Sử dụng đường dẫn tuyệt đối để tránh lỗi open_basedir
+$base_path = realpath(__DIR__ . '/../..');
+require_once $base_path . '/app/middleware/IpRestrictionMiddleware.php';
+IpRestrictionMiddleware::handle();
+require_once $base_path . '/app/helpers/db.php';
+require_once $base_path . '/app/helpers/auth.php';
+require_once $base_path . '/app/helpers/i18n.php';
 
 // Require login
 requireLogin();
@@ -11,7 +15,7 @@ $currentPage = 'tasks';
 
 // Check permissions - chỉ admin và quản lý mới được quản lý công việc
 if (!isAdmin() && !isManager()) {
-    header('Location: /work/public/dashboard');
+    header('Location: /dashboard');
     exit;
 }
 
@@ -20,4 +24,4 @@ $role = getUserRole();
 $department_id = getUserDepartment();
 
 // Xóa các include header/footer/layout cũ, chỉ render view
-include '../app/views/tasks/index.php'; 
+include $base_path . '/app/views/tasks/index.php'; 

@@ -138,7 +138,7 @@
     <div class="container text-center">
         <h2 class="display-5 fw-bold mb-4"><?= __('about_start_project') ?></h2>
         <p class="lead mb-4"><?= __('about_contact_free') ?></p>
-        <a href="/work/public/contact" class="btn btn-light btn-lg">
+        <a href="/contact" class="btn btn-light btn-lg">
             <i class="fas fa-phone me-2"></i><?= __('homepage_contact_now') ?>
         </a>
     </div>

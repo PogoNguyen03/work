@@ -1,16 +1,21 @@
 RewriteEngine On
 
-# Handle routing for work folder
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^work/public/(.*)$ work/public/index.php [QSA,L]
+# Handle static files first
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
 
-# Handle direct access to work/public
+# Handle public website routes
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^work/(.*)$ work/public/index.php [QSA,L]
+RewriteRule ^public/(.*)$ public/index.php [QSA,L]
 
-# Handle root access to work
+# Handle admin panel routes
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^(.*)$ work/public/index.php [QSA,L] 
+RewriteRule ^admin/(.*)$ public/index.php [QSA,L]
+
+# Handle all other requests (including root)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ public/index.php [QSA,L] 

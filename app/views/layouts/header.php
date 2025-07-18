@@ -1,5 +1,7 @@
 <?php
-require_once __DIR__ . '/../../helpers/i18n.php';
+// Sử dụng đường dẫn tuyệt đối để tránh lỗi open_basedir
+$base_path = dirname(dirname(dirname(__DIR__)));
+require_once $base_path . '/app/helpers/i18n.php';
 ?>
 <!DOCTYPE html>
 <html lang="<?= getCurrentLang() ?>">

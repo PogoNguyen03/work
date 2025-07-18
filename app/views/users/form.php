@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../../helpers/i18n.php';
+$base_path = realpath(__DIR__ . '/../../..');
+require_once $base_path . '/app/helpers/i18n.php';
 // View: Form thêm/sửa người dùng
 ob_start();
 ?>
@@ -13,7 +14,7 @@ ob_start();
                 </h4>
             </div>
             <div class="card-body">
-                <form method="POST" action="/work/public/users/<?= $isEdit ? 'update' : 'store' ?>">
+                <form method="POST" action="/users/<?= $isEdit ? 'update' : 'store' ?>">
                     <?php if ($isEdit): ?>
                     <input type="hidden" name="id" value="<?= $user['id'] ?>">
                     <?php endif; ?>
@@ -74,7 +75,7 @@ ob_start();
                         <label class="form-check-label" for="is_verified"><?= __('verified_account') ?></label>
                     </div>
                     <div class="d-flex justify-content-between">
-                        <a href="/work/public/users" class="btn btn-secondary">
+                        <a href="/users" class="btn btn-secondary">
                             <i class="fas fa-arrow-left me-1"></i><?= __('back') ?>
                         </a>
                         <button type="submit" class="btn btn-primary">
@@ -100,7 +101,7 @@ document.getElementById('translateNameBtn').addEventListener('click', function()
         translateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         
         // Gọi API dịch
-        fetch('/work/public/translate', {
+        fetch('/translate', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
@@ -127,4 +128,4 @@ document.getElementById('translateNameBtn').addEventListener('click', function()
 
 <?php
 $content = ob_get_clean();
-include __DIR__ . '/../layouts/main.php'; 
+include $base_path . '/app/views/layouts/main.php'; 

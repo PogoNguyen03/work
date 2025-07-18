@@ -1,5 +1,6 @@
 <?php
-require_once __DIR__ . '/../../helpers/i18n.php';
+$base_path = realpath(__DIR__ . '/../../..');
+require_once $base_path . '/app/helpers/i18n.php';
 // View: Hồ sơ cá nhân
 ob_start();
 ?>
@@ -97,7 +98,7 @@ ob_start();
                 </div>
                 <hr>
                 <div class="d-flex justify-content-between">
-                    <a href="/work/public/dashboard" class="btn btn-secondary">
+                    <a href="/dashboard" class="btn btn-secondary">
                         <i class="fas fa-arrow-left me-1"></i><?= __('back') ?>
                     </a>
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
@@ -163,7 +164,7 @@ document.getElementById('translateNameBtn').addEventListener('click', function()
         translateBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
         
         // Gọi API dịch
-        fetch('/work/public/translate', {
+        fetch('/translate', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
@@ -190,4 +191,4 @@ document.getElementById('translateNameBtn').addEventListener('click', function()
 
 <?php
 $content = ob_get_clean();
-include __DIR__ . '/../layouts/main.php'; 
+include $base_path . '/app/views/layouts/main.php'; 

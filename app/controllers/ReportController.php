@@ -1,8 +1,12 @@
 <?php
-require_once '../app/helpers/db.php';
-require_once '../app/helpers/auth.php';
-require_once '../app/helpers/i18n.php';
-require_once '../app/helpers/translate.php';
+// Sử dụng đường dẫn tuyệt đối để tránh lỗi open_basedir
+$base_path = realpath(__DIR__ . '/../..');
+require_once $base_path . '/app/middleware/IpRestrictionMiddleware.php';
+IpRestrictionMiddleware::handle();
+require_once $base_path . '/app/helpers/db.php';
+require_once $base_path . '/app/helpers/auth.php';
+require_once $base_path . '/app/helpers/i18n.php';
+require_once $base_path . '/app/helpers/translate.php';
 
 // Require login
 requireLogin();
@@ -45,7 +49,7 @@ switch ($action) {
 }
 
 function handleIndex() {
-    global $conn, $user_id, $role, $department_id;
+    global $conn, $user_id, $role, $department_id, $base_path;
     
     // Handle delete
     if (isset($_GET['delete'])) {
@@ -64,7 +68,7 @@ function handleIndex() {
             $stmt->bind_param('i', $delete_id);
             $stmt->execute();
             $stmt->close();
-            header('Location: /work/public/reports');
+            header('Location: /reports');
             exit;
         }
     }
@@ -205,20 +209,21 @@ function handleIndex() {
     $stmt->close();
     
     // Include view
-    include '../app/views/reports/index.php';
+    include $base_path . '/app/views/reports/index.php';
 }
 
 function handleCreate() {
+    global $base_path;
     $pageTitle = 'Tạo báo cáo mới';
     $currentPage = 'reports';
     $isEdit = false;
-    include '../app/views/reports/form.php';
+    include $base_path . '/app/views/reports/form.php';
 }
 
 // Thêm hàm updateUpdatereport
 function updateUpdatereport($reportId, $title, $titleZh, $content, $contentZh, $userId, $departmentId) {
     global $conn;
-    // Kiểm tra đã có bản ghi chưa
+    // Lấy bản ghi cũ
     $stmt = $conn->prepare('SELECT id, title, title_zh, content, content_zh FROM updatereports WHERE report_id = ?');
     $stmt->bind_param('i', $reportId);
     $stmt->execute();
@@ -226,22 +231,22 @@ function updateUpdatereport($reportId, $title, $titleZh, $content, $contentZh, $
     $old = $result->fetch_assoc();
     $stmt->close();
 
-    $needTranslate = false;
+    $needUpdate = false;
     if (!$old) {
-        $needTranslate = true;
+        $needUpdate = true;
     } else {
-        if ($old['title'] !== $title || $old['content'] !== $content) $needTranslate = true;
-        if ($old['title_zh'] !== $titleZh || $old['content_zh'] !== $contentZh) $needTranslate = true;
+        // So sánh từng trường
+        if (
+            $old['title'] !== $title ||
+            $old['title_zh'] !== $titleZh ||
+            $old['content'] !== $content ||
+            $old['content_zh'] !== $contentZh
+        ) {
+            $needUpdate = true;
+        }
     }
 
-    if ($needTranslate) {
-        // Nếu thiếu 1 trường, dịch sang ngôn ngữ còn lại
-        if (empty($titleZh) && !empty($title)) $titleZh = translateText($title, 'zh');
-        if (empty($title) && !empty($titleZh)) $title = translateText($titleZh, 'vi');
-        if (empty($contentZh) && !empty($content)) $contentZh = translateText($content, 'zh');
-        if (empty($content) && !empty($contentZh)) $content = translateText($contentZh, 'vi');
-
-        // Cập nhật vào updatereports
+    if ($needUpdate) {
         if ($old) {
             $stmt = $conn->prepare('UPDATE updatereports SET title=?, title_zh=?, content=?, content_zh=?, user_id=?, department_id=?, updated_at=NOW() WHERE report_id=?');
             $stmt->bind_param('ssssiii', $title, $titleZh, $content, $contentZh, $userId, $departmentId, $reportId);
@@ -270,54 +275,56 @@ function detectLang($text) {
 }
 
 function handleStore() {
-    global $conn, $user_id, $department_id;
+    global $conn, $user_id, $department_id, $base_path;
     
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $title = trim($_POST['title']);
         $content = trim($_POST['content']);
         $titleZh = isset($_POST['title_zh']) ? trim($_POST['title_zh']) : '';
         $contentZh = isset($_POST['content_zh']) ? trim($_POST['content_zh']) : '';
+        $autoTranslate = isset($_POST['auto_translate_enabled']) ? intval($_POST['auto_translate_enabled']) : 1;
         
         if (empty($title) && empty($titleZh)) {
             $_SESSION['error'] = __('please_fill_all_fields');
-            header('Location: /work/public/reports/create');
+            header('Location: /reports/create');
             exit;
         }
         
-        // Tự động detect chiều dịch cho title
-        if (empty($titleZh) && !empty($title)) {
-            $lang = detectLang($title);
-            if ($lang === 'zh') {
-                $titleZh = $title;
-                $title = translateText($titleZh, 'vi');
-            } else {
-                $titleZh = translateText($title, 'zh');
+        // Nếu bật auto-translate: dịch nếu 1 trường bị bỏ trống
+        if ($autoTranslate) {
+            if (empty($titleZh) && !empty($title)) {
+                $lang = detectLang($title);
+                if ($lang === 'zh') {
+                    $titleZh = $title;
+                    $title = translateText($titleZh, 'vi');
+                } else {
+                    $titleZh = translateText($title, 'zh');
+                }
+            } else if (empty($title) && !empty($titleZh)) {
+                $lang = detectLang($titleZh);
+                if ($lang === 'vi') {
+                    $title = $titleZh;
+                    $titleZh = translateText($title, 'zh');
+                } else {
+                    $title = translateText($titleZh, 'vi');
+                }
             }
-        } else if (empty($title) && !empty($titleZh)) {
-            $lang = detectLang($titleZh);
-            if ($lang === 'vi') {
-                $title = $titleZh;
-                $titleZh = translateText($title, 'zh');
-            } else {
-                $title = translateText($titleZh, 'vi');
-            }
-        }
-        // Tự động detect chiều dịch cho content
-        if (empty($contentZh) && !empty($content)) {
-            $lang = detectLang($content);
-            if ($lang === 'zh') {
-                $contentZh = $content;
-                $content = translateText($contentZh, 'vi');
-            } else {
-                $contentZh = translateText($content, 'zh');
-            }
-        } else if (empty($content) && !empty($contentZh)) {
-            $lang = detectLang($contentZh);
-            if ($lang === 'vi') {
-                $content = $contentZh;
-                $contentZh = translateText($content, 'zh');
-            } else {
-                $content = translateText($contentZh, 'vi');
+            if (empty($contentZh) && !empty($content)) {
+                $lang = detectLang($content);
+                if ($lang === 'zh') {
+                    $contentZh = $content;
+                    $content = translateText($contentZh, 'vi');
+                } else {
+                    $contentZh = translateText($content, 'zh');
+                }
+            } else if (empty($content) && !empty($contentZh)) {
+                $lang = detectLang($contentZh);
+                if ($lang === 'vi') {
+                    $content = $contentZh;
+                    $contentZh = translateText($content, 'zh');
+                } else {
+                    $content = translateText($contentZh, 'vi');
+                }
             }
         }
         
@@ -326,13 +333,13 @@ function handleStore() {
         
         if ($stmt->execute()) {
             $reportId = $stmt->insert_id;
-            // Lưu vào updatereports
+            // Ghi vào updatereports
             updateUpdatereport($reportId, $title, $titleZh, $content, $contentZh, $user_id, $department_id);
             $_SESSION['success'] = __('report_created_success');
-            header('Location: /work/public/reports');
+            header('Location: /reports');
         } else {
             $_SESSION['error'] = __('error_occurred');
-            header('Location: /work/public/reports/create');
+            header('Location: /reports/create');
         }
         $stmt->close();
         exit;
@@ -340,13 +347,13 @@ function handleStore() {
 }
 
 function handleView() {
-    global $conn, $user_id, $role, $department_id;
+    global $conn, $user_id, $role, $department_id, $base_path;
     $pageTitle = 'Chi tiết báo cáo';
     $currentPage = 'reports';
     
     $report_id = intval($_GET['id'] ?? 0);
     if (!$report_id) {
-        header('Location: /work/public/reports');
+        header('Location: /reports');
         exit;
     }
     
@@ -365,31 +372,31 @@ function handleView() {
     $stmt->close();
     
     if (!$report) {
-        header('Location: /work/public/reports');
+        header('Location: /reports');
         exit;
     }
     
     // Check permissions using new logic
     if (!canViewReport($report['user_id'], $report['user_role'], $report['department_id'])) {
-        header('Location: /work/public/reports');
+        header('Location: /reports');
         exit;
     }
     
     // Ghi lại việc người dùng đã xem báo cáo
     markReportAsViewed($report_id, $user_id);
     
-    include '../app/views/reports/view.php';
+    include $base_path . '/app/views/reports/view.php';
 }
 
 function handleEdit() {
-    global $conn, $user_id, $role, $department_id;
+    global $conn, $user_id, $role, $department_id, $base_path;
     $pageTitle = 'Chỉnh sửa báo cáo';
     $currentPage = 'reports';
     $isEdit = true;
     
     $report_id = intval($_GET['id'] ?? 0);
     if (!$report_id) {
-        header('Location: /work/public/reports');
+        header('Location: /reports');
         exit;
     }
     
@@ -402,35 +409,33 @@ function handleEdit() {
     $stmt->close();
     
     if (!$report) {
-        header('Location: /work/public/reports');
+        header('Location: /reports');
         exit;
     }
     
     // Check permissions using new logic
     if (!canEditReportByRole($report['user_id'], $report['user_role'], $report['department_id'])) {
-        header('Location: /work/public/reports');
+        header('Location: /reports');
         exit;
     }
     
-    include '../app/views/reports/form.php';
+    include $base_path . '/app/views/reports/form.php';
 }
 
 function handleUpdate() {
-    global $conn, $user_id, $role, $department_id;
-    
+    global $conn, $user_id, $role, $department_id, $base_path;
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $report_id = intval($_POST['id'] ?? 0);
         $title = trim($_POST['title']);
         $content = trim($_POST['content']);
         $titleZh = isset($_POST['title_zh']) ? trim($_POST['title_zh']) : '';
         $contentZh = isset($_POST['content_zh']) ? trim($_POST['content_zh']) : '';
-        
+        $autoTranslate = isset($_POST['auto_translate_enabled']) ? intval($_POST['auto_translate_enabled']) : 1;
         if (!$report_id || (empty($title) && empty($titleZh))) {
             $_SESSION['error'] = __('please_fill_all_fields');
-            header('Location: /work/public/reports/edit?id=' . $report_id);
+            header('Location: /reports/edit?id=' . $report_id);
             exit;
         }
-        
         // Check permissions
         $stmt = $conn->prepare('SELECT r.user_id, r.department_id, u.role as user_role, r.title, r.content, r.title_zh, r.content_zh FROM reports r JOIN users u ON r.user_id = u.id WHERE r.id = ?');
         $stmt->bind_param('i', $report_id);
@@ -438,78 +443,63 @@ function handleUpdate() {
         $result = $stmt->get_result();
         $report = $result->fetch_assoc();
         $stmt->close();
-        
         if (!$report) {
-            header('Location: /work/public/reports');
+            header('Location: /reports');
             exit;
         }
-        
         if (!canEditReportByRole($report['user_id'], $report['user_role'], $report['department_id'])) {
-            header('Location: /work/public/reports');
+            header('Location: /reports');
             exit;
         }
-        
-        // Tự động detect chiều dịch cho title
-        if (empty($titleZh) && !empty($title)) {
-            $lang = detectLang($title);
-            if ($lang === 'zh') {
-                $titleZh = $title;
-                $title = translateText($titleZh, 'vi');
-            } else {
-                $titleZh = translateText($title, 'zh');
-            }
-        } else if (empty($title) && !empty($titleZh)) {
-            $lang = detectLang($titleZh);
-            if ($lang === 'vi') {
-                $title = $titleZh;
-                $titleZh = translateText($title, 'zh');
-            } else {
-                $title = translateText($titleZh, 'vi');
-            }
-        }
-        // Tự động detect chiều dịch cho content
-        if (empty($contentZh) && !empty($content)) {
-            $lang = detectLang($content);
-            if ($lang === 'zh') {
-                $contentZh = $content;
-                $content = translateText($contentZh, 'vi');
-            } else {
-                $contentZh = translateText($content, 'zh');
-            }
-        } else if (empty($content) && !empty($contentZh)) {
-            $lang = detectLang($contentZh);
-            if ($lang === 'vi') {
-                $content = $contentZh;
-                $contentZh = translateText($content, 'zh');
-            } else {
-                $content = translateText($contentZh, 'vi');
-            }
-        }
-        // So sánh và cập nhật updatereports
-        list($title, $titleZh, $content, $contentZh) = updateUpdatereport($report_id, $title, $titleZh, $content, $contentZh, $user_id, $department_id);
-        
-        // Update report
-        $stmt = $conn->prepare('UPDATE reports SET title = ?, title_zh = ?, content = ?, content_zh = ?, updated_at = NOW() WHERE id = ?');
-        $stmt->bind_param('ssssi', $title, $titleZh, $content, $contentZh, $report_id);
-        
-        if ($stmt->execute()) {
-            $_SESSION['success'] = __('report_updated_success');
-            header('Location: /work/public/reports');
-        } else {
-            $_SESSION['error'] = __('error_occurred');
-            header('Location: /work/public/reports/edit?id=' . $report_id);
-        }
+        // Lấy bản cũ từ updatereports
+        $stmt = $conn->prepare('SELECT title, title_zh, content, content_zh FROM updatereports WHERE report_id = ?');
+        $stmt->bind_param('i', $report_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $old = $result->fetch_assoc();
         $stmt->close();
+        $needUpdate = false;
+        if (!$old || $old['title'] !== $title || $old['title_zh'] !== $titleZh || $old['content'] !== $content || $old['content_zh'] !== $contentZh) {
+            $needUpdate = true;
+        }
+        // Nếu bật auto-translate: dịch lại trường còn lại nếu phát hiện thay đổi
+        if ($autoTranslate && $old) {
+            // Nếu tiếng Việt thay đổi, dịch lại tiếng Trung
+            if ($old['title'] !== $title) {
+                $titleZh = translateText($title, 'zh');
+            }
+            if ($old['content'] !== $content) {
+                $contentZh = translateText($content, 'zh');
+            }
+            // Nếu tiếng Trung thay đổi, dịch lại tiếng Việt
+            if ($old['title_zh'] !== $titleZh && $old['title'] === $title) {
+                $title = translateText($titleZh, 'vi');
+            }
+            if ($old['content_zh'] !== $contentZh && $old['content'] === $content) {
+                $content = translateText($contentZh, 'vi');
+            }
+        }
+        if ($needUpdate) {
+            // Update reports
+            $stmt = $conn->prepare('UPDATE reports SET title = ?, title_zh = ?, content = ?, content_zh = ?, updated_at = NOW() WHERE id = ?');
+            $stmt->bind_param('ssssi', $title, $titleZh, $content, $contentZh, $report_id);
+            $stmt->execute();
+            $stmt->close();
+            // Update updatereports
+            updateUpdatereport($report_id, $title, $titleZh, $content, $contentZh, $user_id, $department_id);
+        }
+        $_SESSION['success'] = __('report_updated_success');
+        header('Location: /reports');
         exit;
     }
 }
 
 function handleDelete() {
-    global $conn, $user_id, $role, $department_id;
+    global $conn, $user_id, $role, $department_id, $base_path;
     
     $report_id = intval($_GET['id'] ?? 0);
     if (!$report_id) {
-        header('Location: /work/public/reports');
+        header('Location: /reports');
         exit;
     }
     
@@ -522,12 +512,12 @@ function handleDelete() {
     $stmt->close();
     
     if (!$report) {
-        header('Location: /work/public/reports');
+        header('Location: /reports');
         exit;
     }
     
     if (!canDeleteReportByRole($report['user_id'], $report['user_role'], $report['department_id'])) {
-        header('Location: /work/public/reports');
+        header('Location: /reports');
         exit;
     }
     
@@ -542,13 +532,13 @@ function handleDelete() {
     }
     $stmt->close();
     
-    header('Location: /work/public/reports');
+    header('Location: /reports');
     exit;
 }
 
 function handleExport() {
-    global $conn, $user_id, $role, $department_id;
-    require_once '../app/helpers/export_excel.php';
+    global $conn, $user_id, $role, $department_id, $base_path;
+    require_once $base_path . '/app/helpers/export_excel.php';
     
     // Build query based on role (same logic as handleIndex)
     $where = [];

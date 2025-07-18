@@ -273,4 +273,8 @@ return [
     'content_marketing_desc' => '创建高质量内容吸引并转化客户',
     'local_seo' => '本地SEO',
     'local_seo_desc' => '为本地企业优化本地搜索',
+    'show_chinese_field' => '显示中文字段',
+    'show_vietnamese_field' => '显示越南语字段',
+    'auto_translate_warning' => '如果您手动输入，请关闭自动翻译以避免被覆盖。',
+    'auto_translate_on' => '自动翻译已开启',
 ]; 

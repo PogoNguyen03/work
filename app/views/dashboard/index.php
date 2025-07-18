@@ -1,6 +1,7 @@
 <?php
-require_once __DIR__ . '/../../helpers/i18n.php';
-require_once __DIR__ . '/../../helpers/translate.php';
+$base_path = realpath(__DIR__ . '/../../..');
+require_once $base_path . '/app/helpers/i18n.php';
+require_once $base_path . '/app/helpers/translate.php';
 // View: Dashboard
 ob_start();
 ?>
@@ -102,7 +103,7 @@ ob_start();
                 <p class="mb-3"><?= __('dashboard_reports_desc') ?></p>
                 <div class="d-flex justify-content-between align-items-center">
                     <span class="badge bg-primary"><?= $reports_count ?> <?= __('reports') ?></span>
-                    <a href="/work/public/reports" class="btn btn-primary btn-sm">
+                    <a href="/reports" class="btn btn-primary btn-sm">
                         <i class="fas fa-arrow-right me-1"></i>
                         <?= __('view') ?>
                     </a>
@@ -123,7 +124,7 @@ ob_start();
                 <p class="mb-3"><?= __('dashboard_users_desc') ?></p>
                 <div class="d-flex justify-content-between align-items-center">
                     <span class="badge bg-success"><?= $users_count ?> <?= __('users') ?></span>
-                    <a href="/work/public/users" class="btn btn-success btn-sm">
+                    <a href="/users" class="btn btn-success btn-sm">
                         <i class="fas fa-arrow-right me-1"></i>
                         <?= __('view') ?>
                     </a>
@@ -145,7 +146,7 @@ ob_start();
                 <p class="mb-3"><?= __('dashboard_tasks_desc') ?></p>
                 <div class="d-flex justify-content-between align-items-center">
                     <span class="badge bg-info"><?= __('coming_soon') ?></span>
-                    <a href="/work/public/tasks" class="btn btn-info btn-sm">
+                    <a href="/tasks" class="btn btn-info btn-sm">
                         <i class="fas fa-arrow-right me-1"></i>
                         <?= __('view') ?>
                     </a>
@@ -167,7 +168,7 @@ ob_start();
                 <p class="mb-3"><?= __('dashboard_notifications_desc') ?></p>
                 <div class="d-flex justify-content-between align-items-center">
                     <span class="badge bg-warning"><?= __('coming_soon') ?></span>
-                    <a href="/work/public/notifications" class="btn btn-warning btn-sm">
+                    <a href="/notifications" class="btn btn-warning btn-sm">
                         <i class="fas fa-arrow-right me-1"></i>
                         <?= __('view') ?>
                     </a>
@@ -236,7 +237,7 @@ ob_start();
                                     <?php endif; ?>
                                     <td><?= date('d/m/Y H:i', strtotime($report['created_at'])) ?></td>
                                     <td>
-                                        <a href="/work/public/reports/view?id=<?= $report['id'] ?>" class="btn btn-sm btn-outline-primary">
+                                        <a href="/reports/view?id=<?= $report['id'] ?>" class="btn btn-sm btn-outline-primary">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                     </td>
@@ -252,4 +253,4 @@ ob_start();
 </div>
 <?php
 $content = ob_get_clean();
-include __DIR__ . '/../layouts/main.php'; 
+include $base_path . '/app/views/layouts/main.php'; 
