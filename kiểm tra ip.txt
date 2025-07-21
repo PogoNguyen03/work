@@ -1,0 +1,4 @@
+
+// Thêm debug IP thực tế
+$user_ip = get_client_ip();
+echo "<!-- IP thực tế: $user_ip -->";
